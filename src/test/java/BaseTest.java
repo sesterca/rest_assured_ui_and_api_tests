@@ -1,7 +1,11 @@
 import com.codeborne.selenide.Configuration;
 import com.codeborne.selenide.logevents.SelenideLogger;
+import configuration.ApiConfig;
+import configuration.WebConfig;
 import helpers.Attachments;
 import io.qameta.allure.selenide.AllureSelenide;
+import io.restassured.RestAssured;
+import org.aeonbits.owner.ConfigFactory;
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeAll;
 import org.openqa.selenium.remote.DesiredCapabilities;
@@ -12,8 +16,9 @@ import static io.restassured.RestAssured.baseURI;
 
 public class BaseTest {
 
-    String login = "m.osip@icloud.com";
-    String password = "29071986";
+    static String login;
+    static String password;
+
     String cookieAuthName = "NOPCOMMERCE.AUTH";
     String compareListCookieName = "nop.CompareProducts";
     String viewedCookie = "NopCommerce.RecentlyViewedProducts";
@@ -24,8 +29,20 @@ public class BaseTest {
 
         SelenideLogger.addListener("allure", new AllureSelenide());
 
-        baseURI = "http://demowebshop.tricentis.com";
-        baseUrl = "http://demowebshop.tricentis.com";
+        WebConfig webConfig = ConfigFactory.create(WebConfig.class, System.getProperties());
+
+        login = webConfig.login();
+        password = webConfig.password();
+
+        ApiConfig apiConfig = ConfigFactory.create(ApiConfig.class, System.getProperties());
+
+        RestAssured.baseURI = apiConfig.baseURI();
+        Configuration.baseUrl = webConfig.basebUrl();
+
+        String remote = apiConfig.server();
+        String remoteUser = apiConfig.remoteUser();
+        String remotePassword = apiConfig.remotePassword();
+        Configuration.remote ="https://" + remoteUser + ":" + remotePassword + "@" + remote + "/wd/hub";
 
         DesiredCapabilities capabilities = new DesiredCapabilities();
         capabilities.setCapability("enableVNC", true);
